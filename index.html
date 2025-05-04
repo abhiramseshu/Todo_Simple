@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TODO APP</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>TODO App</h1>
+      <div class="form">
+        <input type="text" id="title" placeholder="Todo Title" />
+        <input type="text" id="description" placeholder="Todo Description" />
+        <button onclick="onPress()">Add Todo</button>
+      </div>
+      <div id="mainArea" class="todo-list"></div>
+    </div>
+
+    <script>
+      function deleteTodo(id) {
+        fetch(`http://localhost:3000/todos/${id}`, {
+          method: "delete",
+        });
+        const parentElement = document.getElementById(`${id}`);
+        parentElement.remove();
+      }
+
+      function callback3(res) {
+        res.json().then((res) => {
+          const ele = document.getElementById(`${res.id}`);
+          const titleSpan = ele.querySelector('span[name="title"]');
+          const descriptionSpan = ele.querySelector('span[name="description"]');
+          titleSpan.innerHTML = res.title;
+          descriptionSpan.innerHTML = res.description;
+        });
+      }
+
+      function editTodo(id) {
+        fetch(`http://localhost:3000/todos/${id}`, {
+          method: "put",
+          body: JSON.stringify({
+            title: document.getElementById("title").value,
+            description: document.getElementById("description").value,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then(callback3);
+      }
+
+      function showtodos(tasks) {
+        const parentElement = document.getElementById("mainArea");
+        parentElement.innerHTML = "";
+        for (let i = 0; i < tasks.length; i++) {
+          const task = tasks[i];
+          const childElement = document.createElement("div");
+          childElement.className = "todo-item";
+          childElement.setAttribute("id", `${task.id}`);
+
+          const titleSpan = document.createElement("span");
+          const descSpan = document.createElement("span");
+          const editButton = document.createElement("button");
+          const deleteButton = document.createElement("button");
+
+          titleSpan.innerHTML = task.title;
+          descSpan.innerHTML = task.description;
+          titleSpan.className = "todo-title";
+          titleSpan.setAttribute("name", "title");
+          descSpan.setAttribute("name", "description");
+
+          editButton.innerHTML = "Edit";
+          deleteButton.innerHTML = "Delete";
+          editButton.className = "edit-btn";
+          deleteButton.className = "delete-btn";
+
+          editButton.setAttribute("onclick", `editTodo(${task.id})`);
+          deleteButton.setAttribute("onclick", `deleteTodo(${task.id})`);
+
+          const buttonGroup = document.createElement("div");
+          buttonGroup.className = "button-group";
+
+          buttonGroup.appendChild(editButton);
+          buttonGroup.appendChild(deleteButton);
+
+          childElement.appendChild(titleSpan);
+          childElement.appendChild(descSpan);
+          childElement.appendChild(buttonGroup);
+          parentElement.appendChild(childElement);
+        }
+      }
+
+      function callback2(res) {
+        res.json().then(showtodos);
+      }
+
+      function getData() {
+        fetch("http://localhost:3000/todos", {
+          method: "get",
+        }).then(callback2);
+      }
+
+      function callback(res) {
+        res.json().then((res) => {
+          const parentElement = document.getElementById("mainArea");
+          const childElement = document.createElement("div");
+          childElement.className = "todo-item";
+          childElement.setAttribute("id", `${res.id}`);
+
+          const titleSpan = document.createElement("span");
+          const descSpan = document.createElement("span");
+          const editButton = document.createElement("button");
+          const deleteButton = document.createElement("button");
+
+          titleSpan.innerHTML = res.title;
+          descSpan.innerHTML = res.description;
+          titleSpan.className = "todo-title";
+          titleSpan.setAttribute("name", "title");
+          descSpan.setAttribute("name", "description");
+
+          editButton.innerHTML = "Edit";
+          deleteButton.innerHTML = "Delete";
+          editButton.className = "edit-btn";
+          deleteButton.className = "delete-btn";
+
+          editButton.setAttribute("onclick", `editTodo(${res.id})`);
+          deleteButton.setAttribute("onclick", `deleteTodo(${res.id})`);
+
+          const buttonGroup = document.createElement("div");
+          buttonGroup.className = "button-group";
+
+          buttonGroup.appendChild(editButton);
+          buttonGroup.appendChild(deleteButton);
+
+          childElement.appendChild(titleSpan);
+          childElement.appendChild(descSpan);
+          childElement.appendChild(buttonGroup);
+
+          parentElement.appendChild(childElement);
+        });
+      }
+
+      function onPress() {
+        fetch("http://localhost:3000/todos", {
+          method: "post",
+          body: JSON.stringify({
+            title: document.getElementById("title").value,
+            description: document.getElementById("description").value,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then(callback);
+      }
+
+      getData();
+    </script>
+  </body>
+</html>
